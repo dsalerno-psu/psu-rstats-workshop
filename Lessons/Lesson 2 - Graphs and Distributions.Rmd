@@ -1,0 +1,177 @@
+---
+title: "Lesson 2 - Graphs and Distributions"
+author: "Domingo Salerno"
+date: "2023-01-02"
+output: html_document
+---
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages}
+# Load necessary packages
+pacman::p_load(ggplot2, readr)
+```
+
+```{r data}
+# Load English L2 lexical decision data
+lexdec <- read_csv("./data/L2_English_Lexical_Decision_Data.csv",
+                   col_names = T,
+                   col_types = "cfffiiififfnifff")
+```
+
+There was a problem when we loaded our data! The warning message provides us the `problems()` function which we can use to investigate the issue.
+
+Now, let's fix the problem.
+
+```{r fix data}
+# Load English L2 lexical decision data
+lexdec <- read_csv("./data/L2_English_Lexical_Decision_Data.csv",
+                   col_names = T,
+                   col_types = "cfffiiifcffnifff")
+
+# Fix "10 years" values
+lexdec$monthsLive <- ifelse(lexdec$monthsLive == "10 years",
+                            "120",
+                            lexdec$monthsLive)
+
+lexdec$monthsLive <- as.integer(lexdec$monthsLive)
+```
+
+Examine our data.
+
+```{r}
+# Print the structure of the data
+str(lexdec)
+
+# Print statistical summary of data
+summary(lexdec)
+
+# Check unique values of columns
+unique(lexdec$domLang)
+```
+
+# Introduction to ggplot2
+
+ggplot2 is a powerful R package for data visualization based on the grammar of graphics concept. It allows for the creation of complex and customizable plots through a layered approach.
+
+Here, we'll create a scatter plot of car mpg vs horsepower using ggplot2.
+
+```{r}
+# Create a basic ggplot using the 'mtcars' dataset
+
+# Step 1: Start with the ggplot function
+ggplot(data = mtcars, aes(x = hp, y = mpg)) +
+  
+  # Step 2: Add a geometry layer using the geom_point function for scatter plot
+  geom_point() +
+  
+  # Step 3: Add labels and title using the labs function
+  labs(title = "Scatter Plot of MPG vs Horsepower",
+       x = "Horsepower",
+       y = "Miles per Gallon")
+```
+
+The above chunk introduces the basic structure of a ggplot2 code:
+
+- Start with ggplot() specifying the dataset and aesthetics (aes) mapping.
+- Add layers (geom_*) to specify the type of plot (e.g., geom_point() for a scatter plot).
+- Use labs() to add labels and title to the plot.
+
+## Create a Histogram for the 'confident' variable
+
+```{r}
+ggplot(lexdec, aes(x = confident)) +
+  geom_histogram(binwidth = 1, 
+                 fill = "skyblue", 
+                 color = "black") +
+  labs(title = "Histogram of Confidence Levels", 
+       x = "Confidence Levels", 
+       y = "Frequency")
+```
+
+## Create a Boxplot for 'confident' variable
+
+```{r}
+ggplot(lexdec, aes(x = yearsStudy, y = sex)) +
+  geom_boxplot(fill = "lightgreen", color = "darkgreen") +
+  labs(title = "Boxplot of Years of Study by Sex", 
+       x = "Sex", 
+       y = "Years of Study")
+```
+
+## Create a Scatter Plot for 'hoursDay' vs 'yearsStudy'
+
+```{r}
+ggplot(lexdec, aes(x = monthsLive, y = RT)) +
+  geom_point(color = "blue") +
+  labs(title = "Scatter Plot of Hours Study vs RT", 
+       x = "Hours Study", 
+       y = "Reaction Time (ms)")
+```
+
+Most of the data points are squished into the bottom left corner. Let's adjust the scale to zoom in on our plot.
+
+```{r}
+ggplot(lexdec, aes(x = monthsLive, y = RT)) +
+  geom_point(color = "blue") +
+  labs(title = "Scatter Plot of Hours Study vs RT", 
+       x = "Hours Study", 
+       y = "Reaction Time (ms)") + 
+  xlim(0, 500) + # Adjust x-axis limits from 0 to 500
+  ylim(0, 10000) # Adjust y-axis limits from 0 to 1e+05
+```
+
+Our plot is still not very clear. The integers on the x-axis are causing our data points to overlap. To fix this, include a jitter to move the data points around a little. We can also make the points transparent!
+
+```{r}
+ggplot(lexdec, aes(x = monthsLive, y = RT)) +
+  # Add a jitter to improve readability
+  geom_point(position = position_jitter(width = 0.5, height = 0),
+             alpha = 0.3, # Add transparency to data points
+             color = "blue") +
+  labs(title = "Scatter Plot of Hours Study vs RT", 
+       x = "Hours Study", 
+       y = "Reaction Time (ms)") + 
+  xlim(0, 500) +
+  ylim(0, 10000)
+```
+
+## Create a Bar Chart for 'domLang'
+
+```{r}
+ggplot(lexdec, aes(x = domLang)) +
+  geom_bar(fill = "orange") +
+  labs(title = "Bar Chart of Dominant Languages", 
+       x = "Dominant Languages", 
+       y = "Frequency")
+```
+
+Our x-axis tick labels are overlapping. We can rotate them to make them readable.
+
+```{r}
+ggplot(lexdec, aes(x = domLang)) +
+  geom_bar(fill = "orange") +
+  labs(title = "Bar Chart of Dominant Languages", 
+       x = "Dominant Languages", 
+       y = "Frequency") + 
+  # Rotate x-axis labels by 45 degrees
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+```
+
+# Exercises
+
+## Exercise 1: Histogram
+Create a histogram to visualize the distribution of 'confident' values in the lexdec dataset.
+
+## Exercise 2: Box Plot
+Generate a box plot to compare the 'yearsStudy' variable across different 'domLang' categories in the lexdec dataset.
+
+## Exercise 3: Scatter Plot
+Create a scatter plot to explore the relationship between 'hoursDay' and 'RT' (reaction time) variables in the lexdec dataset.
+
+## Exercise 4: Bar Chart
+Construct a bar chart to display the frequency of each 'domLang' category in the lexdec dataset.
